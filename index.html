@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tema 3 - Editor de imagini</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="login-container" id="login-container">
+    <h2>Autentificare</h2>
+    <form id="login-form">
+      <input type="text" id="username" placeholder="Username" required title="Introduceți numele de utilizator" />
+      <input type="password" id="password" placeholder="Parola" required title="Introduceți parola" />
+      <button type="submit" title="Autentificare în aplicație">Login</button>
+    
+    </form>
+  </div>
+
+  <!-- MODAL AJUTOR -->
+ <div id="help-modal" class="hidden help-modal">
+   <div class="help-content">
+     <span id="close-help" class="close">&times;</span>
+     <h3>Ghid de utilizare</h3>
+     <ul>
+      <li>🖼️ Încarcă imaginea din PC sau API din tabul <strong>Imagine</strong>.</li>
+      <li>🎨 Aplică filtre de bază din <strong>Filtre</strong>.</li>
+      <li>🧠 Folosește operatorii din <strong>Detecție muchii</strong> pentru contururi.</li>
+      <li>🔁 Transformă imaginea (zoom, oglindire, translatare) din <strong>Transformări</strong>.</li>
+      <li>🌗 Ajustează luminozitatea și contrastul din tabul <strong>Luminozitate & Contrast</strong>.</li>
+      <li>⚙️ Aplică operații binare pe două imagini din <strong>Operații binare</strong>.</li>
+      <li>📊 Explorează opțiuni avansate din <strong>Histogramă & Avansate</strong>.</li>
+      <li>💾 Nu uita să salvezi imaginea după procesare!</li>
+      <li>⌨️ Folosește <strong>Ctrl + Z</strong> pentru a reseta imaginea.</li>
+      <li>💾 Folosește <strong>Ctrl + S</strong> pentru a salva imaginea.</li>
+      <li>⌨️ Folosește <strong>Alt +</strong> pentru zoom in.</li>
+      <li>⌨️ Folosește <strong>Alt +</strong> pentru zoom out.</li>
+
+    </ul>
+   </div>
+ </div>
+
+  <div class="app-container hidden" id="app-container">
+    <div class="main-content">
+      <!-- NAVIGATION BAR -->
+      <div class="tabs">
+        <button class="tab-link active" onclick="openTab(event, 'tab-image')" title="Tab pentru încărcare și rotație imagine">Imagine</button>
+        <button class="tab-link" onclick="openTab(event, 'tab-filters')" title="Filtre de bază pentru imagine">Filtre</button>
+        <button class="tab-link" onclick="openTab(event, 'tab-edges')" title="Detecție a muchiilor cu operatori">Detecție muchii</button>
+        <button class="tab-link" onclick="openTab(event, 'tab-transform')" title="Transformări precum zoom, oglinire, translatare">Transformări</button>
+        <button class="tab-link" onclick="openTab(event, 'tab-adjust')" title="Reglaje pentru luminozitate și contrast">Luminozitate & Contrast</button>
+        <button class="tab-link" onclick="openTab(event, 'tab-binary')" title="Operații între două imagini (AND, OR, XOR)">Operații binare</button>
+        <button class="tab-link" onclick="openTab(event, 'tab-histogram')" title="Prelucrări avansate pe histograme">Histogramă & Avansate</button>
+        <button id="help-button" title="Ghid de utilizare">❓ Ajutor</button>
+        <button id="toggle-darkmode" title="Comută modul întunecat">🌙 Dark Mode</button>
+
+      </div>
+
+      <div class="controls">
+        <!-- CANVAS -->
+        <div id="canvas-container">
+          <canvas id="canvas" title="Zona de afișare imagine"></canvas>
+          <p id="timer">Timp de procesare: -</p>
+        </div>
+        
+        <div class="progress-container hidden" id="progress-container">
+          <label for="progress-bar">Salvare în curs...</label>
+          <progress id="progress-bar" value="0" max="100"></progress>
+        </div>
+        
+
+        <!-- BUTOANE GLOBALE -->
+        <div class="global-buttons">
+          <button id="reset-image" title="Resetează imaginea la forma inițială">Resetează</button>
+          <div id="spinner" class="spinner hidden" title="Operație în curs..."></div>
+
+          <button id="save-image" title="Salvează imaginea procesată">Salvează rezultatul</button>
+          
+        </div>
+
+        <!-- TAB: IMAGINE -->
+        <div class="tab-content active-tab" id="tab-image">
+          <p id="rotation-label">Unghi curent: 0°</p>
+          <button id="load-image" title="Încarcă o imagine aleatorie cu un câine">Încarcă imagine din API</button>
+          <label for="file-upload" class="custom-file-upload" title="Încarcă o imagine din calculator">Încarcă imagine din PC</label>
+          <input type="file" id="file-upload" accept="image/*" style="display: none;" />
+          <button id="rotate-image" title="Rotește imaginea cu 90 de grade">Rotește 90°</button>
+        </div>
+
+        <!-- TAB: FILTRE -->
+        <div class="tab-content" id="tab-filters">
+          <h3>Filtre de bază</h3>
+          <button id="btn-grayscale" title="Conversie în tonuri de gri">Grayscale</button>
+          <button id="btn-negative" title="Inversarea culorilor">Negativ</button>
+          <button id="btn-binarize" title="Transformă imaginea într-una alb-negru">Binarizare</button>
+          <button id="btn-histogram" title="Întinderea histogramei pentru contrast">Histogram Stretch</button>
+          <button id="btn-sharpen" title="Accentuează contururile">Sharpening</button>
+          <button id="btn-smoothing" title="Estompează detalii (blur)">Smoothing</button>
+          <button id="btn-grayscale-weighted" title="Grayscale cu ponderi reale (NTSC)">Grayscale ponderat</button>
+          <button id="btn-normalize" title="Normalizează valorile RGB">Normalize Colors</button>
+        </div>
+
+        <!-- TAB: DETECȚIE MUCHII -->
+        <div class="tab-content" id="tab-edges">
+          <h3>Detecție muchii</h3>
+          <button id="btn-sobel" title="Operator Sobel">Aplică Sobel</button>
+          <button id="btn-prewitt" title="Operator Prewitt">Aplică Prewitt</button>
+          <button id="btn-laplacian-positive" title="Laplacian cu valori pozitive">Laplacian Pozitiv</button>
+          <button id="btn-laplacian-negative" title="Laplacian cu valori negative">Laplacian Negativ</button>
+        </div>
+
+        <!-- TAB: TRANSFORMĂRI -->
+        <div class="tab-content" id="tab-transform">
+          <h3>Transformări imagine</h3>
+          <button id="btn-mirror-horizontal" title="Oglindire orizontală">Oglindire orizontală</button>
+          <button id="btn-mirror-vertical" title="Oglindire verticală">Oglindire verticală</button>
+          <button id="btn-zoom-in" title="Mărire imagine prin replicare de pixeli">Zoom In (Pixel Replication)</button>
+          <button id="btn-zoom-out" title="Micșorare imagine prin replicare de pixeli">Zoom Out (Pixel Replication)</button>
+          <button id="btn-zoh-in" title="Zoom In folosind Zero Order Hold">Zoom In (ZOH)</button>
+          <button id="btn-zoh-out" title="Zoom Out folosind Zero Order Hold">Zoom Out (ZOH)</button>
+          <label for="zoom-k" title="Factorul de scalare pentru Zoom">Zoom K (ZOH):</label>
+          <input type="number" id="zoom-k" min="0.1" step="0.1" value="2" title="Introdu factorul K de zoom" />
+          <button id="btn-zoh-k" title="Aplică zoom personalizat">Aplică Zoom K</button>
+          <label for="translate-x" title="Translatare pe axa X">Translatare X (px):</label>
+          <input type="number" id="translate-x" value="50" title="Pixeli de deplasat pe orizontală" />
+          <label for="translate-y" title="Translatare pe axa Y">Translatare Y (px):</label>
+          <input type="number" id="translate-y" value="50" title="Pixeli de deplasat pe verticală" />
+          <button id="btn-translate" title="Aplică translatarea imaginii">Aplică translatare</button>
+        </div>
+
+        <!-- TAB: LUMINOZITATE & CONTRAST -->
+        <div class="tab-content" id="tab-adjust">
+          <h3>Luminozitate și contrast</h3>
+          <label for="brightness-slider" title="Modifică luminozitatea imaginii">Luminozitate:</label>
+          <input type="range" id="brightness-slider" min="-100" max="100" value="0" title="Glisează pentru luminozitate" />
+          <span id="brightness-value">0</span>
+          <label for="contrast-slider" title="Modifică contrastul imaginii">Contrast: <span id="contrast-value">100</span></label>
+          <input type="range" id="contrast-slider" min="0" max="300" value="100" title="Glisează pentru contrast" />
+        </div>
+
+        <!-- TAB: OPERAȚII BINARE -->
+        <div class="tab-content" id="tab-binary">
+          <h3>Operații binare</h3>
+          <label for="second-upload" class="custom-file-upload" title="Încarcă o a doua imagine pentru operații binare">Încarcă a doua imagine</label>
+          <input type="file" id="second-upload" accept="image/*" style="display: none;" />
+          <button id="btn-and" title="Operație binară AND între imagini">AND</button>
+          <button id="btn-or" title="Operație binară OR între imagini">OR</button>
+          <button id="btn-xor" title="Operație binară XOR între imagini">XOR</button>
+        </div>
+
+        <!-- TAB: HISTOGRAMĂ & PROCESĂRI AVANSATE -->
+        <div class="tab-content" id="tab-histogram">
+          <h3>Procesări avansate pe histograme</h3>
+          <button id="btn-histogram-11gray" title="Păstrează doar 11 niveluri de gri în jurul celui dominant">Histogramă 11 nivele gri</button>
+          <label for="gray-depth" title="Număr de niveluri de gri în imagine">Număr niveluri gri:</label>
+          <input type="number" id="gray-depth" min="2" max="256" value="4" title="Ex: 2, 4, 8..." />
+          <button id="btn-decrease-depth" title="Reduce adâncimea de culoare în tonuri de gri">Reduce niveluri gri</button>
+          <label for="histogram-shift" title="Translatare niveluri de gri (lumină)">Translatare niveluri gri:</label>
+          <input type="number" id="histogram-shift" value="30" title="Ex: 10, 30, 50..." />
+          <button id="btn-histogram-shift" title="Aplică translatarea pe histogramă">Aplică translatare</button>
+
+          <h4>Transformare liniară a nivelurilor de gri</h4>
+          <label for="linear-a" title="Factor de multiplicare pentru transformare">a:</label>
+          <input type="number" id="linear-a" value="1" step="0.1" title="Ex: 1, 1.2, 0.8..." />
+          <label for="linear-b" title="Termen aditiv pentru transformare">b:</label>
+          <input type="number" id="linear-b" value="0" title="Ex: 0, 10, -10..." />
+          <button id="btn-linear-transform" title="Aplică transformare liniară">Aplică transformare</button>
+
+          <h4>Transformare logaritmică a nivelurilor de gri</h4>
+          <label for="log-c" title="Constanta c pentru transformarea logaritmică">c:</label>
+          <input type="number" id="log-c" value="45" title="Ex: 45, 30, 60..." />
+          <button id="btn-log-transform" title="Aplică transformare logaritmică">Aplică transformare log</button>
+
+          <h4>Transformare power-law (gamma)</h4>
+          <label for="gamma-c" title="Constanta de multiplicare c">c:</label>
+          <input type="number" id="gamma-c" value="1" title="Ex: 1, 0.5, 2..." />
+          <label for="gamma-gamma" title="Exponentul gamma (γ)">γ (gamma):</label>
+          <input type="number" step="0.1" id="gamma-gamma" value="0.5" title="Ex: 0.5, 1.0, 2.2..." />
+          <button id="btn-gamma-transform" title="Aplică transformare gamma">Aplică transformare gamma</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="app.js" defer></script>
+
+</body>
+</html>
